@@ -15,11 +15,11 @@ By the end of this, developers should be able to:
 
 * Install and use `cors` to allow for Cross-Origin Resource Sharing between our
   front-end application and back-end API
-* Build and deploy our front-end application
 * Describe the process of connecting our front-end and back-end
-* Set up our front-end development server to proxy requests to our back-end
+* Set up our front-end development server to make requests to our back-end
   server
-* Set up our back-end API to serve static `build` assets in production
+* Set up our back-end API to serve JSON data to our React app.
+
 
 ## Introduction
 
