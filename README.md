@@ -26,7 +26,7 @@ By the end of this, developers should be able to:
   server
 * Set up our back-end API to serve static `build` assets in production
 
-## Introduction (10 min / 0:15)
+## Introduction
 
 To integrate React with a back-end framework (such as Express) we will need to
 make a few decisions about the desired architecture of our application (how we
@@ -83,7 +83,7 @@ data.
 Today, we will focus on setting up and deploying our application on separate
 servers. This is more common and more straightforward.
 
-## Getting Started (20 min / 0:35)
+## Getting Started
 
 Today, we will be building the GameLib.biz app. GameLib.biz is a place for users to track their video game library and which games they've completed. 
 We will also be using a Mongoose / Express back-end to allow for users to save their games.
@@ -108,44 +108,61 @@ npm run dev
 
 > If you inspect `package.json`, you will see that this is an alias for `nodemon server.js` in the "scripts" object
 
-4. Navigate to `localhost:4000/api/v1/games` to see the response from our server. You should see a message that says: "Incomplete games#index controller function". 
+4. Navigate to `localhost:4000/api/games` to see the response from our server. You should see a message that says: "Incomplete games#index controller function". 
 
-5. In `controllers/games.js` all CRUD functionality has been stubbed out but is currently incomplete. Complete the `index` function with the following:
+5. In `controllers/games.js` all CRUD functionality has been stubbed out but is currently incomplete. Complete the games index route with the following:
 
 ```js
-const index = (req, res) => {
-    db.Game.find({}, (err, foundGames) => {
-        if (err) console.log('Error in games#index:', err)
-        
-        if(!foundGames) return res.json({
-            message: 'No Games found in database.'
-        })
+router.get('/', (req, res) => {
+  db.Game.find({}, (err, foundGames) => {
+    if (err) return console.log(err);
 
-        res.status(200).json({ games: foundGames });
-    })
-}
+    if (!foundGames) {
+      return res.json({ message: 'No games found in the db' });
+    }
+    
+    res.status(200).json({ games: foundGames });
+  });
+});
 ```
 
 > The code we added will return a JSON response to the client that we can use to save or display the data as necessary.
 
-6. Navigate to `localhost:4000/api/v1/games` to see the response from our server now. You should see an array of 10 game objects from our database in JSON format. If you don't, debug before moving on.
+6. Navigate to `localhost:4000/api/games` to see the response from our server now. You should see an array of 10 game objects from our database in JSON format. If you don't, debug before moving on.
 
-7. Complete the `show` function so that it too sends back a single JSON game object when a request is made to `localhost:4000/api/v1/games/<ValidGameIdHere>`. 
-
-8. To implement the `create` method we first need to modify `server.js` to parse any JSON included with a POST or PUT request and save it within `req.body` for our access in the associated controller function. Uncomment line 9 of `server.js` to enable express's built-in body parsing capabilities. 
-
-9. Modify the `create` function in `controllers/games.js` to the following:
+7. Complete the game show route so that it too sends back a single JSON game object when a request is made to `localhost:4000/api/games/:id`. 
 
 ```js
-const create = (req, res) => {
-    db.Game.create(req.body, (err, savedGame) => {
-        if (err) console.log('Error in games#create:', err)
+...
+router.get('/:id', (req, res) => {
+  db.Game.findById(req.params.id, (err, foundGame) => {
+    if (err) return console.log(err);
+    
+    res.status(200).json({ game: foundGame });
+  });
+});
+...
+```
 
-        // Validations and error handling here
+8. To implement the game create route we first need to modify `server.js` to parse any JSON included with a POST or PUT request and save it within `req.body` for our access in the associated controller function. Add the following code to your middleware section in `server.js`.
+```js
+...
+app.use(express.json());
+...
+```
 
-        res.status(201).json({ game: savedGame })
-    })
-}
+9. Modify the game create route in `controllers/games.js` to the following:
+
+```js
+...
+router.post('/', (req, res) => {
+  db.Game.create(req.body, (err, savedGame) => {
+    if (err) return console.log(err);
+    
+    res.status(201).json({ game: savedGame });
+  });
+});
+...
 ```
 
 > Any function that modifies data in the database really should be protected with validations and comprehensive error handling. We don't have the time to add it now but here in the controller is one place where we can make sure the user is saving the data we need.
@@ -173,22 +190,22 @@ npm start
 import React from 'react'
 import { Switch, Route } from 'react-router-dom'
 
-import Home from '../pages/Home'
-import GameList from '../pages/GameList'
+import HomePage from '../pages/HomePage'
+import GameListPage from '../pages/GameListPage'
 
 export default (
   <Switch>
-    <Route exact path='/' component={ Home } />
-    <Route path='/games' component={ GameList } />
+    <Route exact path='/' component={ HomePage } />
+    <Route path='/games' component={ GameListPage } />
   </Switch>
 )
 ```
 
-> We import `GameList` even though it doesn't exist and you may see an error  we'll fix that right now.
+> We import `GameListPage` even though it doesn't exist and you may see an error  we'll fix that right now.
 
-5. Create `/src/pages/GameList.js` and get a boilerplate class-based component in place.
+5. Create `/src/pages/GameListPage.js` and get a boilerplate class-based component in place.
 
-6. The `GameList` component is going to be our first to make a request to the backend through our helper functions. Build out the component with the following code:
+6. The `GameListPage` component is going to be our first to make a request to the backend through our helper functions. Build out the component with the following code:
 
 ```js
 import React, { Component } from 'react'
@@ -197,7 +214,7 @@ import GameModel from '../models/game'
 import { Link } from 'react-router-dom'
 import GameCard from '../components/GameCard'
 
-class GameList extends Component {
+class GameListPage extends Component {
   state = {
     games: []
   }
@@ -221,10 +238,10 @@ class GameList extends Component {
   }
 }
 
-export default GameList;
+export default GameListPage;
 ```
 
-7. In `/models/game.js` add the method we invoke in the `GameList` component.
+7. In `/models/game.js` add the method we invoke in the `GameListPage` component.
 
 ```js
   static all = () => {
@@ -237,7 +254,7 @@ export default GameList;
 
 8. We won't see a list of games in state quite yet. What we will see is a CrossCORS error in the browser's console. Let's take a break to discuss that.
 
-## Two-Server Architecture (30 min / 1:15)
+## Two-Server Architecture
 
 Currently we are using this type of architecture. Our back-end is running on
 `localhost:4000` while our front-end is running on `localhost:3000`. One way to
@@ -248,7 +265,7 @@ application, navigate to the Game List view and check the console. You
 should see:
 
 ```
-XMLHttpRequest cannot load http://localhost:4000/api/v1/games. No 'Access-
+XMLHttpRequest cannot load http://localhost:4000/api/games. No 'Access-
 Control-Allow-Origin' header is present on the requested resource. Origin
 'http://localhost:3000' is therefore not allowed access.
 ```
@@ -283,7 +300,7 @@ npm start
 ```
 
 Now when you navigate to `localhost:3000/games`, you should see an array of games 
-being retrieved from our API and stored in `GameList`'s state.
+being retrieved from our API and stored in `GameListPage`'s state.
 
 > Note: The default `cors` configuration (above) will allow requests from
 > **any** origin (which may or may not be ideal). To more precisely control
@@ -291,52 +308,66 @@ being retrieved from our API and stored in `GameList`'s state.
 > the [cors documentation](https://www.npmjs.com/package/cors) for more
 > information on this process.
 
-### Complete the GameList Component
+### Complete the GameListPage Component
 
-1. Let's display each game on the GameList page. Refactor your `render` function to the following:
+1. Let's display each game on the GameListPage. Create a `renderGames` function that creates an array of JSX for all the game titles. Then call `renderGames` in the `render` method.
 
 ```js
-  render() {
-    let gameList = this.state.games.map((game, index) => {
-      return <h1 key={index}>{ game.title }</h1>
+  renderGames() {
+    const gamesJSX = this.state.games.map((game, idx) => {
+      return (
+        <h3>{game.title}</h3>
+      )
     })
 
-    return (
-      <div>
-        <h1>All Games</h1>
-        { this.state.games ? gameList : 'Loading...' }
-      </div>
-    );
+    return gamesJSX;
   }
+
+    render() {
+      return (
+        <main>
+          <h2>All Games</h2>
+          <div className="games-container">
+            { this.state.games ? this.renderGames() : 'Loading...' }
+          </div>
+        </main>
+      );
+    }
 ```
 
 > We're **conditionally rendering** the game titles once we know the data from our API is safely in state. This will show a "Loading..." message until the array of games in state has some value and is no longer empty. Once that is true, we render the titles for each game.
 
 ### Single Game Page
 
-1. A list of game titles is fine but our users will want to do more than see some text. Let's refactor those `<h1>` elements to render individual `GameCard` components. The GameCard component should display the title, publisher, and the coverArtUrl but how it is laid out is up to you. 
+1. A list of game titles is fine but our users will want to do more than see some text. Let's refactor those `<h3>` elements in `renderGames` to render individual `GameCard` components. 
 
-2. With a working GameCard component rendering to the GameList page, we can now start to build a single detail page for each game. Let's make each GameCard component a clickable link. In the render function of `GameList.js`:
+Create a GameCard component in the components directory. It should display the title, publisher, and the coverArtUrl but how it is laid out is up to you.
+
+2. With a working GameCard component rendering to the GameListPage, we can now start to build a single detail page for each game. Let's make each GameCard component a clickable link. In the render function of `GameListPage.js`:
 
 ```js
-let gameList = this.state.games.map((game, index) => {
-  return (
-    <Link to={`/games/${ game._id }`} key={index}>
-      <GameCard  {...game} />
-    </Link>
-  )
-})
+renderGames() {
+  const gamesJSX = this.state.games.map((game, idx) => {
+    return (
+      <Link key={idx} to={`/games/${game._id}`}>
+        <GameCard game={game} />
+      </Link>
+    )
+  })
+
+  return gamesJSX;
+}
 ```
 
 For every `<Link>` component, we need to add a `<Route />`. React Router can handle dynamic URLs and does so in a way we are already familiar with by allowing path names to look like `/games/:id` in the Route component. Add this to `routes.js`:
 
 ```js
-import GameShow from '../pages/GameShow'
+import GameShowPage from '../pages/GameShowPage'
 ...
-<Route path='/games/:id' component={ GameShow } />
+<Route path='/games/:id' component={ GameShowPage } />
 ```
 
-3. The GameShow component will be up to you to build out. Here are the requirements:
+3. The GameShowPage component will be up to you to build out. Here are the requirements:
 
 ```
 - it must use a static method from the GameModel 
@@ -346,85 +377,91 @@ import GameShow from '../pages/GameShow'
 
 > Hint: Look for the game's ID in the props passed to each component rendered through a <Route />. You can find the id in the `match` props.
 
-4. Our last step together will be to build out the functionality for a user to create a new game. We'll type this out together, but here is the final code for this component. In a new file, `/pages/NewGame.js`, add:
+4. Our last step together will be to build out the functionality for a user to create a new game. We'll type this out together, but here is the final code for this component. In a new file, `/pages/GameCreatePage.js`, add:
 
 ```js
-import React, { Component } from 'react';
-import GameModel from '../models/game'
+import { Component } from 'react';
+import GameModel from '../models/Game';
 
-class NewGame extends Component {
+class GameCreatePage extends Component {
   state = {
     title: '',
     publisher: '',
     coverArtUrl: '',
-    completed: false  
+    completed: false
   }
 
   handleSubmit = (event) => {
     event.preventDefault();
 
     GameModel.create(this.state)
-      .then(data => {
-        this.props.history.push('/games')
+      .then((data) => {
+        this.props.history.push('/games');
       })
   }
 
-  handleChange = (event) => {
-    if (event.target.type !== "text") {
-      this.setState({ completed: !this.state.completed })
+  handleInputChange = (event) => {
+    if (event.target.type === 'text') {
+      this.setState({ [event.target.name]: event.target.value });
+    } else {
+      this.setState({ completed: !this.state.completed });
     }
-
-    this.setState({
-      [event.target.name]: event.target.value
-    })
   }
 
   render() {
     return (
-      <div>
-        <h2>New Game</h2>
+      <main>
+        <h2>Add a New Game</h2>
+
         <form onSubmit={this.handleSubmit}>
-          <div className="form-input">
-            <label htmlFor="title">Title</label>
+          <div>
+            <label htmlFor="title">Title: </label>
             <input 
               type="text" 
               name="title" 
-              onChange={this.handleChange}
-              value={this.state.title} />
+              value={this.state.title}
+              onChange={this.handleInputChange}
+            />
           </div>
-          <div className="form-input">
-            <label htmlFor="publisher">Publisher</label>
+
+          <div>
+            <label htmlFor="publisher">Publisher: </label>
             <input 
               type="text" 
               name="publisher" 
-              onChange={this.handleChange}
-              value={this.state.publisher} />
+              value={this.state.publisher}
+              onChange={this.handleInputChange}
+            />
           </div>
-          <div className="form-input">
-            <label htmlFor="coverArtUrl">Image URL</label>
+
+          <div>
+            <label htmlFor="coverArtUrl">Cover Art URL: </label>
             <input 
               type="text" 
               name="coverArtUrl" 
-              onChange={this.handleChange}
-              value={this.state.coverArtUrl} />
-          </div>
-          <div className="form-input">
-            <label htmlFor="completed">Completed</label>
-            <input 
-              type="checkbox" 
-              id="completed" 
-              checked={this.state.completed} 
-              onChange={this.handleChange} />
+              value={this.state.coverArtUrl}
+              onChange={this.handleInputChange}
+            />
           </div>
 
-          <input type="submit" value="Save!"/>
+          <div>
+            <label htmlFor="completed">Completed: </label>
+            <input 
+              type="checkbox" 
+              name="completed" 
+              value={this.state.completed}
+              onChange={this.handleInputChange}
+            />
+          </div>
+
+          <input type="submit" value="Add a Game" />
         </form>
-      </div>
-    );
+      </main>
+    )
   }
 }
 
-export default NewGame;
+export default GameCreatePage;
 ```
 
 As we've seen before, here our component renders a form for our user to interact with. This form has **controlled inputs**, in other words, input elements where the value is tied directly to state and only modified through changing state. A separate `onSubmit()` method is called when the form's submit button is pressed. We stop the default submit behaviour from happening and instead make the request through our model file. Let's write the fetch statement that will send our form data to the API as JSON.
@@ -434,15 +471,13 @@ And in `/models/game.js` add:
 ```js
 class GameModel {
   ...
-  static create = (gameData) => {
-    return fetch(`${url}/games`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+  static create(gameData) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(gameData)
     })
-      .then(res => res.json())
+    .then((response) => response.json());
   }
 }
 ```
@@ -578,10 +613,6 @@ surge ./build
 
 > [Surge](https://surge.sh/) is a CLI based npm package that lets you quickly
 > deploy static front-end applications for free.
-
-## Closing / Questions (10 min / 2:30)
-
-## Additional Resources
 
 ### Microservice Solution
 
