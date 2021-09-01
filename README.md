@@ -4,20 +4,15 @@
 
 The MERN stands for Mongo, Express, React and Node and is an acronym used to
 describe applications build with that stack of technologies. React and it's
-surrounding ecosystem (like Redux and React-Router) are just for the front-end
+surrounding ecosystem are just for the front-end
 of the application. If we want to persist data to a database or have any other
 back-end logic we need to (1) provide a separate back-end and (2) get the
 front-end and back-end to communicate somehow.
-
-In this lesson, we'll discuss two options for building full stack applications
-using React on the front-end and Express, Mongo and Node on the back-end.
 
 ## Objectives
 
 By the end of this, developers should be able to:
 
-* Describe the difference between single-server and multi-server configurations
-  for an application built in the MERN stack
 * Install and use `cors` to allow for Cross-Origin Resource Sharing between our
   front-end application and back-end API
 * Build and deploy our front-end application
@@ -28,18 +23,19 @@ By the end of this, developers should be able to:
 
 ## Introduction
 
-To integrate React with a back-end framework (such as Express) we will need to
+<!-- To integrate React with a back-end framework (such as Express) we will need to
 make a few decisions about the desired architecture of our application (how we
 want to structure everything). The first primary decision to make is where we
-want our front-end application to be served from. There are two primary options:
+want our front-end application to be served from. There are two primary options: -->
 
-### Multi-Server Configuration
+<!-- ### Multi-Server Configuration -->
 
-Our front-end application and back-end API will be completely separate, hosted
+For our particular implementation, our front-end application and back-end API will be completely separate, hosted
 on separate servers even! They will each have their own Git repositories and
 will be deployed independently to different servers. Our front-end will retrieve
 data from our back-end (across separate domains) using AJAX.
 
+<!-- 
 #### Pros
 
 * Separation of Concerns: Our application is more modular and our front-end and
@@ -54,9 +50,9 @@ data from our back-end (across separate domains) using AJAX.
 
 * Since requests will be sent across separate domains, we will have to configure
   CORS (Cross-Origin Resource Sharing) for the browser to allow our front-end to
-  retrieve data from our back-end
+  retrieve data from our back-end -->
 
-### Single-Server Configuration
+<!-- ### Single-Server Configuration
 
 Our front-end application will be housed in the same repository as our back-end
 code. They will be deployed together to a single server where our back-end will
@@ -81,7 +77,7 @@ data.
   configuration and cause the two to compete over server resources.
 
 Today, we will focus on setting up and deploying our application on separate
-servers. This is more common and more straightforward.
+servers. This is more common and more straightforward. -->
 
 ## Getting Started
 
